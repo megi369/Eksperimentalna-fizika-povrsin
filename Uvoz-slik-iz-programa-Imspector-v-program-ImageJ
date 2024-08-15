@@ -1,0 +1,131 @@
+parent = "C:\\..."
+child = ""
+input_dir = parent
+output_dir = input_dir+child
+
+//Choose
+//series000p0 = "series_9"
+//series000p1 = "series_11"
+
+
+
+series000p =newArray("series_9", "series_10");
+series010p =newArray("series_11", "series_12");
+series020p =newArray("series_13", "series_14");
+series030p =newArray("series_15", "series_16");
+//series030p_repeat =newArray("series_54", "series_55","series_56","series_57");
+
+
+
+print("---");
+//The file list.
+
+list = getFileList(input_dir);
+listlength = list.length;
+print("# files: ",listlength);
+
+startTime = getTime(); 
+setBatchMode(true);
+for (z = 0; z < listlength; z++){
+//or (z = 0; z < 3; z++){
+	print(z+1,"/",listlength);
+
+	if(endsWith(list[z], 'msr')==true ){
+
+		
+		titleExperiment = list[z];
+		print(titleExperiment);
+		end = lengthOf(titleExperiment)-4;
+		titleExperiment = substring(titleExperiment, 0, indexOf(titleExperiment, "_t")+5);
+//		titleExperiment = substring(titleExperiment, 0, indexOf(titleExperiment, ".msr"));
+		print(titleExperiment);
+		series = series000p;
+		for(k = 0; k < series.length; k++){
+			prefix = "000p_";
+			run("Bio-Formats Importer", "open=["+input_dir+list[z]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT "+series[k]);
+	  		run("Subtract...", "value=32768");
+			title = getTitle();
+			title=title.substring(title.lastIndexOf(" - ") + 3);
+			title=split(title, "{");
+			title=title[0];
+			out_path = output_dir + titleExperiment + prefix + title + ".tiff";
+			saveAs("tif", "" + out_path + "");
+			print(title);
+			close();
+		};
+		print("Next STED power");
+		series = series010p;
+		for(k = 0; k < series.length; k++){
+			prefix = "010p_";
+			
+			run("Bio-Formats Importer", "open=["+input_dir+list[z]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT "+series[k]);
+	  		run("Subtract...", "value=32768");
+			title = getTitle();
+			title=title.substring(title.lastIndexOf(" - ") + 3);
+			title=split(title, "{");
+			title=title[0];
+			out_path = output_dir + titleExperiment + prefix + title + ".tiff";
+			saveAs("tif", "" + out_path + "");
+			print(title);
+			close();
+		};
+		print("Next STED power");
+		series = series020p;
+		for(k = 0; k < series.length; k++){
+			prefix = "020p_";
+			
+			run("Bio-Formats Importer", "open=["+input_dir+list[z]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT "+series[k]);
+	  		run("Subtract...", "value=32768");
+			title = getTitle();		
+			title=title.substring(title.lastIndexOf(" - ") + 3);
+			title=split(title, "{");
+			title=title[0];
+			out_path = output_dir + titleExperiment + prefix + title + ".tiff";
+			saveAs("tif", "" + out_path + "");
+			print(title);
+			close();
+		};
+	
+	print("Next STED power");
+		series = series030p;
+		for(k = 0; k < series.length; k++){
+			prefix = "030p_";
+			
+			run("Bio-Formats Importer", "open=["+input_dir+list[z]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT "+series[k]);
+		  	run("Subtract...", "value=32768");
+			title = getTitle();
+			title=title.substring(title.lastIndexOf(" - ") + 3);
+			title=split(title, "{");
+			title=title[0];
+			out_path = output_dir + titleExperiment + prefix + title + ".tiff";
+			saveAs("tif", "" + out_path + "");
+			print(title);
+			close();
+		};
+//		print("Next STED power");
+//		series = series030p_repeat;
+//		for(k = 0; k < series.length; k++){
+//			prefix = "030p_repeat_";
+//			
+//			run("Bio-Formats Importer", "open=["+input_dir+list[z]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT "+series[k]);
+//		  	run("Subtract...", "value=32768");
+//			title = getTitle();
+//			title=title.substring(title.lastIndexOf(" - ") + 3);
+//			title=split(title, "{");
+//			title=title[0];
+//			out_path = output_dir + titleExperiment + prefix + title + ".tiff";
+//			saveAs("tif", "" + out_path + "");
+//			print(title);
+//			close();
+//		};
+
+	};				
+
+	run("Close All");
+};
+
+endTime = getTime(); 
+calTimeInSeconds = (endTime - startTime)/1000;
+print("Computation time: "+calTimeInSeconds+" s");
+print("done.");
+setBatchMode(false);
