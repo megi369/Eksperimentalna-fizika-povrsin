@@ -1,0 +1,105 @@
+// Define the folder containing the TIFF images
+parent = "C:..."
+child = ""
+pairsFolder = parent + child;
+resultsFolder = parent +child+ "...\\";
+
+// Get a list of all files in the folder
+list = getFileList(pairsFolder);
+
+// Initialize an array to store pairs of pre and post bleach images
+pairs = newArray(0);
+
+startTime = getTime(); 
+//setBatchMode(true);
+
+// Loop through the files in the folder to identify pairs of pre and post-bleach images
+for (i = 0; i < list.length; i++) {
+    // Check if the file is a pre-bleach image
+    if ((endsWith(list[i], ".tif") || endsWith(list[i], ".tiff")) && indexOf(list[i], "-0 ") != -1) {
+        // Get the prefix of the pre-bleach image
+        prefix = substring(list[i], 0, indexOf(list[i], "-0 "));
+        // Construct the filename for the corresponding post-bleach image
+        postFilename = prefix + "-1 " + substring(list[i], indexOf(list[i], "-0 ") + 3);
+        // Debug statement to check filename matching
+        print("Checking pair for: " + list[i] + ", " + postFilename);
+        // Check if the post-bleach image exists in the list of files
+        var found = false;
+        for (j = 0; j < list.length; j++) {
+            if (list[j] == postFilename) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            // Add the pair of pre and post bleach images to the pairs array
+            pairs = Array.concat(pairs, newArray(list[i], postFilename));
+            print("Found pair: " + list[i] + ", " + postFilename); // Debug statement
+        } else {
+            print("Error: Post-bleach image not found for " + list[i]); // Debug statement
+        }
+    }
+}
+
+// Loop through pairs and perform FRC analysis for each pair
+for (k = 0; k < pairs.length; k++) {
+    print("Current pair index: " + k); // Debug statement
+    
+    preBleach = pairsFolder + pairs[k];
+    postBleachIndex = (k + 1) % pairs.length; // Calculate the index of the corresponding post-bleach image
+    postBleach = pairsFolder + pairs[postBleachIndex];
+    preBleachName = preBleach.substring(preBleach.lastIndexOf("\\") + 1);
+    postBleachName = postBleach.substring(postBleach.lastIndexOf("\\") + 1);
+    
+    print("Processing pair: " + preBleach + ", " + postBleach); // Debug statement
+    print("Pre-bleach file path: " + preBleach);
+    print("Post-bleach file path: " + postBleach);
+    // Open the pre-bleach image and select it
+   
+    open(preBleach);
+//    run("Enhance Contrast", "saturated=0.35");
+//	run("8-bit");
+//	run("Subtract...", "value=32768");
+
+    print(preBleachName);
+
+    selectImage(preBleachName);
+
+    // Open the post-bleach image and select it
+    
+    open(postBleach);
+    run("Enhance Contrast", "saturated=0.35");
+//    run("8-bit");
+//    selectImage(postBleachName);
+//	run("Subtract...", "value=32768");
+	
+    // FRC analysis
+    run("FRC Calculation...", "image_1=[" + postBleachName + "] image_2=[" + preBleachName + "] resolution=[Three sigma] display");
+	prefix = substring(postBleachName, 0, indexOf(postBleachName, ".tiff")-3);
+//	prefix = postBleachName;
+    
+    // Save the graph with the filename derived from the image pair prefix and pair index in the results folder
+    graphFilename = "graph_" + prefix + "_pair_" + (k/2+1) + ".png"; // Increment pair index by 1 for naming consistency
+    saveAs("PNG", resultsFolder + graphFilename);
+
+//    // Save the results table with the filename derived from the image pair prefix in the results folder
+//    saveAs("Results", resultsFolder + "frc_results_test" + prefix + ".csv");
+    // Close the pre and post-bleach images
+    close();
+    selectImage(preBleachName);
+    close();
+    selectImage(postBleachName);
+    close();
+    k++;
+}
+
+// Save the results table with the filename derived from the image pair prefix in the results folder
+//saveAs("Results", resultsFolder + "frc_results_test" + prefix + ".csv");
+
+endTime = getTime(); 
+calTimeInSeconds = (endTime - startTime)/1000;
+print("Computation time: "+calTimeInSeconds+" s");
+print("done.");
+setBatchMode(false);
+
+
